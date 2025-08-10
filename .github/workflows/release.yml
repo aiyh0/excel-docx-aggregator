@@ -1,0 +1,32 @@
+name: release-zip
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make dist folder
+        run: |
+          mkdir dist
+          copy excel_to_docx_aggregate.py dist\
+          copy run.bat dist\
+          copy requirements.txt dist\
+          copy README.md dist\
+          if exist LICENSE copy LICENSE dist\
+
+      - name: Create zip
+        run: |
+          powershell -Command "Compress-Archive -Path dist\* -DestinationPath excel-docx-aggregator-${{ github.ref_name }}.zip"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: excel-docx-aggregator-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
